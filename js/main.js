@@ -2,6 +2,7 @@ import { DataLoader } from './data-loader.js';
 import { QuickInsights } from './charts/quick-insights.js';
 import { Histogram } from './charts/histogram.js';
 import { SmokerBoxPlot } from './charts/boxplot.js';
+import { RangeSlider } from './ui/range-slider.js';
 
 // Constants
 const DATA_PATH = 'data/medical-charges.csv';
@@ -16,6 +17,10 @@ let appState = {
         regions: [],
         age: [18, 64],
         bmi: [15, 54]
+    },
+    sliders: {
+        age: null,
+        bmi: null
     }
 };
 
@@ -26,7 +31,11 @@ const ui = {
     kpiSmokers: document.querySelector('#kpi-smokers .kpi-value'),
     kpiBmi: document.querySelector('#kpi-bmi .kpi-value'),
     regionFilterContainer: document.getElementById('region-filters'),
-    resetBtn: document.querySelector('.reset-btn')
+    resetBtn: document.querySelector('.reset-btn'),
+    ageMinLabel: document.getElementById('age-min'),
+    ageMaxLabel: document.getElementById('age-max'),
+    bmiMinLabel: document.getElementById('bmi-min'),
+    bmiMaxLabel: document.getElementById('bmi-max')
 };
 
 // Charts
@@ -48,6 +57,7 @@ async function init() {
 
         // Initial Render
         populateFilters();
+        initRangeSliders(loader);
         renderDashboard(loader);
         setupEventListeners(loader);
         animateEntrance();
@@ -79,6 +89,42 @@ function updateFilterState() {
     appState.filters.sex = Array.from(document.querySelectorAll('input[name="sex"]:checked')).map(cb => cb.value);
     appState.filters.smoker = Array.from(document.querySelectorAll('input[name="smoker"]:checked')).map(cb => cb.value);
     appState.filters.regions = Array.from(document.querySelectorAll('input[name="region"]:checked')).map(cb => cb.value);
+    // Age and BMI are updated via slider callbacks
+}
+
+function initRangeSliders(loader) {
+    appState.sliders.age = new RangeSlider('age-filter', {
+        min: 18,
+        max: 64,
+        values: appState.filters.age,
+        onInput: (values) => {
+            appState.filters.age = values;
+            ui.ageMinLabel.textContent = Math.round(values[0]);
+            ui.ageMaxLabel.textContent = Math.round(values[1]);
+        },
+        onChange: () => applyFiltersDebounced(loader)
+    });
+
+    appState.sliders.bmi = new RangeSlider('bmi-filter', {
+        min: 15,
+        max: 54,
+        values: appState.filters.bmi,
+        onInput: (values) => {
+            appState.filters.bmi = values;
+            ui.bmiMinLabel.textContent = Math.round(values[0]);
+            ui.bmiMaxLabel.textContent = Math.round(values[1]);
+        },
+        onChange: () => applyFiltersDebounced(loader)
+    });
+}
+
+// Simple debounce function
+let filterTimeout;
+function applyFiltersDebounced(loader) {
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(() => {
+        applyFilters(loader);
+    }, 50); // Small delay for smoothness
 }
 
 function applyFilters(loader) {
@@ -98,6 +144,18 @@ function applyFilters(loader) {
 function resetFilters(loader) {
     // Reset checkboxes
     document.querySelectorAll('.sidebar input[type="checkbox"]').forEach(cb => cb.checked = true);
+
+    // Reset sliders
+    appState.filters.age = [18, 64];
+    appState.filters.bmi = [15, 54];
+    appState.sliders.age.reset(appState.filters.age);
+    appState.sliders.bmi.reset(appState.filters.bmi);
+
+    // Update labels
+    ui.ageMinLabel.textContent = 18;
+    ui.ageMaxLabel.textContent = 64;
+    ui.bmiMinLabel.textContent = 15;
+    ui.bmiMaxLabel.textContent = 54;
 
     // Reset state
     updateFilterState();
