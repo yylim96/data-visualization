@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Charges Analytics</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+
+    <!-- Libraries -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <div class="header-content">
+                <h1>Medical Charges Analytics</h1>
+                <div class="header-controls">
+                    <button class="icon-btn" aria-label="Toggle Theme">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- Sidebar / Filters -->
+            <aside class="sidebar glass-panel">
+                <div class="sidebar-header">
+                    <h2>Filters</h2>
+                    <button class="reset-btn">Reset</button>
+                </div>
+
+                <div class="filter-group">
+                    <label>Age Range</label>
+                    <div id="age-filter" class="range-slider-container">
+                        <!-- D3 Range Slider placeholder -->
+                        <div class="range-values">
+                            <span id="age-min">18</span> - <span id="age-max">64</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>BMI Range</label>
+                    <div id="bmi-filter" class="range-slider-container">
+                        <!-- D3 Range Slider placeholder -->
+                        <div class="range-values">
+                            <span id="bmi-min">15</span> - <span id="bmi-max">54</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Gender</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked value="male" name="sex">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Male</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked value="female" name="sex">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Female</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Smoker Status</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked value="yes" name="smoker">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Smoker</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked value="no" name="smoker">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Non-Smoker</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Region</label>
+                    <div class="checkbox-group" id="region-filters">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Dashboard Area -->
+            <main class="dashboard-content">
+                <!-- KPI Section -->
+                <section class="kpi-grid">
+                    <div class="kpi-card glass-panel" id="kpi-charges">
+                        <div class="kpi-icon icon-charges">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <div class="kpi-info">
+                            <div class="kpi-label">Avg. Charges</div>
+                            <div class="kpi-value">$0</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass-panel" id="kpi-patients">
+                        <div class="kpi-icon icon-users">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div class="kpi-info">
+                            <div class="kpi-label">Total Patients</div>
+                            <div class="kpi-value">0</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass-panel" id="kpi-smokers">
+                        <div class="kpi-icon icon-smoke">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.2-8.1a4.9 4.9 0 0 1 0 1.2">
+                                </path>
+                                <path d="M18 10a5 5 0 0 0 0-2"></path>
+                            </svg>
+                        </div>
+                        <div class="kpi-info">
+                            <div class="kpi-label">Smokers</div>
+                            <div class="kpi-value">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass-panel" id="kpi-bmi">
+                        <div class="kpi-icon icon-bmi">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M16.2 7.8l-2 6.3-1.7-2.6-4.5 4.5"></path>
+                            </svg>
+                        </div>
+                        <div class="kpi-info">
+                            <div class="kpi-label">Avg. BMI</div>
+                            <div class="kpi-value">0</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Main Charts Grid -->
+                <section class="charts-grid">
+                    <!-- Charges Distribution -->
+                    <div class="chart-card glass-panel span-2">
+                        <div class="card-header">
+                            <h3>Charges Distribution</h3>
+                            <div class="card-actions">
+                                <button class="info-btn" title="Show details">i</button>
+                            </div>
+                        </div>
+                        <div class="chart-container" id="chart-histogram"></div>
+                    </div>
+
+                    <!-- Smoker Analysis -->
+                    <div class="chart-card glass-panel">
+                        <div class="card-header">
+                            <h3>Smoker vs Non-Smoker</h3>
+                        </div>
+                        <div class="chart-container" id="chart-boxplot"></div>
+                    </div>
+
+                    <!-- Regional Analysis (Placeholder for now) -->
+                    <div class="chart-card glass-panel">
+                        <div class="card-header">
+                            <h3>Quick Insights</h3>
+                        </div>
+                        <div class="insights-container" id="quick-insights">
+                            <div class="insight-item">
+                                <span class="insight-label">Highest Cost Factor</span>
+                                <span class="insight-value highlight-red">Smoking</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="insight-label">Most Expensive Region</span>
+                                <span class="insight-value" id="insight-region">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
